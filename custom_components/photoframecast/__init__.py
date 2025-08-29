@@ -19,7 +19,7 @@ from homeassistant.helpers import config_validation as cv
 DOMAIN = "photoframecast"
 STORAGE_KEY = f"{DOMAIN}_resume_data"
 STORAGE_VERSION = 1
-CONFIG_SCHEMA = cv.empty_config_schema
+CONFIG_SCHEMA = cv.empty_config_schema()
 # Keep track of running slideshow or Photo of the Day tasks per device
 running_tasks: dict[str, asyncio.Task] = {}  # keyed by entity_id
 _LOGGER = logging.getLogger(__name__)
