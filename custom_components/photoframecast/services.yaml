@@ -1,0 +1,161 @@
+start_slideshow:
+  name: Start Slideshow
+  description: Start a photo slideshow on a media player.
+  fields:
+    entity_id:
+      name: Media player
+      description: The media player to display the slideshow.
+      required: true
+      selector:
+        entity:
+          domain: media_player
+    folder:
+      name: Photo folder
+      description: Path to the folder containing photos (should always start with /media).
+      required: true
+      default: /media
+      selector:
+        text: {}
+    interval:
+      name: Interval
+      description: Interval between photos in seconds. Too short (<5s) may cause issues.
+      required: true
+      default: 5
+      selector:
+        number:
+          min: 1
+          max: 3600
+          mode: box
+          unit_of_measurement: s
+    max_runtime:
+      name: Max Runtime
+      description: Maximum duration in minutes before automatically stopping the slideshow.
+      required: true
+      default: 720
+      selector:
+        number:
+          min: 0
+          max: 1440
+          mode: box
+          unit_of_measurement: min
+    shuffle:
+      name: Shuffle photos
+      description: If true, photos are randomly ordered each loop; set to false for alphabetical order.
+      required: false
+      default: true
+      selector:
+        boolean: {}
+    sort_folder_by_folder:
+      name: Folder-by-Folder Sorting (works only when Shuffle is false)
+      description: |
+        If true, sorts files alphabetically within each folder (folder-by-folder).
+        If false, sorts all files alphabetically regardless of folder structure.
+      required: false
+      default: true
+      selector:
+        boolean: {}
+    resume:
+      name: Resume from Last Photo (works only when Shuffle is false)
+      description: |
+        If true, slideshow continues from where it was last stopped.
+        If false, slideshow starts from the beginning.
+      required: false
+      default: true
+      selector:
+        boolean: {}
+    recursive:
+      name: Include subfolders
+      description: If true, includes all subfolders under the main photo folder.
+      required: false
+      default: true
+      selector:
+        boolean: {}
+    loop:
+      name: Loop slideshow
+      description: If true, slideshow repeats indefinitely until stopped or max runtime is reached.
+      required: false
+      default: true
+      selector:
+        boolean: {}
+    force:
+      name: Force run
+      description: If true, starts and runs even if media player is busy with other media.
+      required: false
+      default: true
+      selector:
+        boolean: {}
+
+stop_slideshow:
+  name: Stop Slideshow
+  description: Stop the active slideshow on a media player.
+  fields:
+    entity_id:
+      name: Media player
+      description: The media player to stop the slideshow on.
+      required: true
+      selector:
+        entity:
+          domain: media_player
+    turn_off:
+      name: Turn Off Player
+      description: If true, powers off the media player after stopping the slideshow. Set false to keep it on.
+      required: false
+      default: true
+      selector:
+        boolean: {}
+
+reset_resume:
+  name: Reset Resume Index
+  description: Reset resume index for selected media player. If not specified, resume index will be reset for all devices.
+  fields:
+    entity_id:
+      name: Media Player
+      description: Media player to reset the resume index for.
+      required: true
+      selector:
+        entity:
+          domain: media_player
+
+photo_of_the_day:
+  name: Photo of the day
+  description: Display random photo from the folder.
+  fields:
+    entity_id:
+      name: Media player
+      description: The media player to display the slideshow.
+      required: true
+      selector:
+        entity:
+          domain: media_player
+    folder:
+      name: Photo folder
+      description: Path to the folder containing photos (should always start with /media).
+      required: true
+      default: /media
+      selector:
+        text: {}
+    max_runtime:
+      name: Max Runtime
+      description: Maximum duration in seconds before automatically stopping the photo.
+      required: true
+      default: 60
+      selector:
+        number:
+          min: 0
+          max: 3600
+          mode: box
+          unit_of_measurement: s
+    recursive:
+      name: Include subfolders
+      description: If true, includes all subfolders under the main photo folder.
+      required: false
+      default: true
+      selector:
+        boolean: {}
+    force:
+      name: Force run
+      description: If true, starts and runs even if media player is busy with other media.
+      required: false
+      default: true
+      selector:
+        boolean: {}
