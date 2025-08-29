@@ -2,7 +2,7 @@
   "domain": "photoframecast",
   "name": "PhotoFrameCast",
   "version": "1.0.0",
-  "documentation": "https://github.com/nowocain/PhotoFrameCast/README.md",
+  "documentation": "https://github.com/nowocain/PhotoFrameCast/blob/main/README.md",
   "issue_tracker": "https://github.com/nowocain/PhotoFrameCast/issues",
   "integration_type": "service",
   "requirements": [],
