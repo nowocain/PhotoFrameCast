@@ -13,17 +13,18 @@ from homeassistant.helpers.network import get_url
 from homeassistant.helpers.integration_platform import async_process_integration_platforms
 from homeassistant.components.media_player import MediaPlayerEntityFeature
 from homeassistant.helpers.storage import Store
+import voluptuous as vol
+from homeassistant.helpers import config_validation as cv
 
 DOMAIN = "photoframecast"
 STORAGE_KEY = f"{DOMAIN}_resume_data"
 STORAGE_VERSION = 1
-
+CONFIG_SCHEMA = cv.empty_config_schema
 # Keep track of running slideshow or Photo of the Day tasks per device
 running_tasks: dict[str, asyncio.Task] = {}  # keyed by entity_id
 _LOGGER = logging.getLogger(__name__)
 
 # ----------------- Helper Functions ----------------- #
-
 async def notify_user(hass: HomeAssistant, title: str, message: str, notification_id: str = "photoframecast"):
     """Send a persistent notification to the Home Assistant UI."""
     from homeassistant.components.persistent_notification import async_create as create_notification
