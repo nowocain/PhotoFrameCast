@@ -1,13 +1,12 @@
 {
   "domain": "photoframecast",
   "name": "PhotoFrameCast",
-  "version": "1.0.0",
-  "documentation": "https://github.com/nowocain/PhotoFrameCast/blob/main/README.md",
-  "issue_tracker": "https://github.com/nowocain/PhotoFrameCast/issues",
-  "dependencies": ["http"],
-  "integration_type": "service",
-  "requirements": [],
   "codeowners": ["@nowocain"],
+  "dependencies": ["http"],
+  "documentation": "https://github.com/nowocain/PhotoFrameCast/blob/main/README.md",
+  "integration_type": "service",
   "iot_class": "local_push",
-  "requirements": []
+  "issue_tracker": "https://github.com/nowocain/PhotoFrameCast/issues",
+  "requirements": [],
+  "version": "1.0.0"
 }
