@@ -159,3 +159,67 @@ photo_of_the_day:
       default: true
       selector:
         boolean: {}
+
+start_webslideshow:
+  name: Start Web Slideshow
+  description: Start a slideshow accessible in your browser (no media player required).
+  fields:
+    folder:
+      name: Photo folder
+      description: Path to the folder containing photos (should start with /media).
+      required: true
+      default: /media
+      selector:
+        text: {}
+    interval:
+      name: Interval
+      description: Interval between photos in seconds.
+      required: true
+      default: 5
+      selector:
+        number:
+          min: 1
+          max: 3600
+          mode: box
+          unit_of_measurement: s
+    shuffle:
+      name: Shuffle photos
+      description: If true, the slideshow will display photos in random order.
+      required: false
+      default: true
+      selector:
+        boolean: {}
+    sort_folder_by_folder:
+      name: Folder-by-Folder Sorting (only works when Shuffle=false)
+      description: If true, photos will be sorted folder by folder instead of alphabetically in a single list.
+      required: false
+      default: true
+      selector:
+        boolean: {}
+    recursive:
+      name: Include subfolders
+      description: If true, includes all subfolders under the main photo folder.
+      required: false
+      default: true
+      selector:
+        boolean: {}
+    loop:
+      name: Loop slideshow
+      description: If true, the slideshow will loop endlessly. If false, it stops after showing all photos once.
+      required: false
+      default: true
+      selector:
+        boolean: {}
+    auto_restart:
+      name: Auto-Restart Slideshow
+      description: >
+          If true, the slideshow will automatically restart if it stops unexpectedly (useful for kiosk setups).
+          This only runs a background watchdog task while Home Assistant is running (won't survive HA restart).
+      required: false
+      default: false
+      selector:
+        boolean: {}
+
+stop_webslideshow:
+  name: Stop Web Slideshow
+  description: Stop the currently active web slideshow and cancel any optional auto-restart watchdog.
