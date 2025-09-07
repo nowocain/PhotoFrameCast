@@ -18,29 +18,34 @@ start_slideshow:
         text: {}
     interval:
       name: Interval
-      description: Interval between photos in seconds. Too short (<5s) may cause issues.
+      description: Time interval between photos. Too short (<5s) may cause issues.
       required: true
-      default: 5
+      default:
+        hours: 0
+        minutes: 0
+        seconds: 5
       selector:
-        number:
-          min: 1
-          max: 3600
-          mode: box
-          unit_of_measurement: s
+        duration: {}
     max_runtime:
       name: Max Runtime
-      description: Maximum duration in minutes before automatically stopping the slideshow.
+      description: Maximum duration before automatically stopping the slideshow.
       required: true
-      default: 720
+      default:
+        hours: 12
+        minutes: 0
+        seconds: 0
       selector:
-        number:
-          min: 0
-          max: 1440
-          mode: box
-          unit_of_measurement: min
+        duration: {}
     shuffle:
       name: Shuffle photos
       description: If true, photos are randomly ordered each loop; set to false for alphabetical order.
+      required: false
+      default: true
+      selector:
+        boolean: {}
+    recursive:
+      name: Include subfolders
+      description: If true, includes all subfolders under the main photo folder.
       required: false
       default: true
       selector:
@@ -54,18 +59,21 @@ start_slideshow:
       default: true
       selector:
         boolean: {}
+    sort_order:
+      name: Sort Order (works only when Shuffle is false)
+      description: Choose alphabetical, from newest to oldest or from oldest to newest sort order.
+      selector:
+        select:
+          options:
+            - alpha
+            - newest
+            - oldest
+      default: alpha
     resume:
       name: Resume from Last Photo (works only when Shuffle is false)
       description: |
         If true, slideshow continues from where it was last stopped.
         If false, slideshow starts from the beginning.
-      required: false
-      default: true
-      selector:
-        boolean: {}
-    recursive:
-      name: Include subfolders
-      description: If true, includes all subfolders under the main photo folder.
       required: false
       default: true
       selector:
@@ -84,6 +92,16 @@ start_slideshow:
       default: true
       selector:
         boolean: {}
+    sync_group:
+      name: Sync Group
+      description: >
+        Optional name for a sync group. The first slideshow started becomes the owner.
+        Other devices join as watchers and follow the owner's settings to stay in sync.
+        Leave empty for no group
+      required: false
+      default: ""
+      selector:
+        text: {}
 
 stop_slideshow:
   name: Stop Slideshow
@@ -136,15 +154,14 @@ photo_of_the_day:
         text: {}
     max_runtime:
       name: Max Runtime
-      description: Maximum duration in seconds before automatically stopping the photo.
+      description: Maximum duration before automatically stopping the photo.
       required: true
-      default: 60
+      default:
+        hours: 1
+        minutes: 0
+        seconds: 0
       selector:
-        number:
-          min: 0
-          max: 3600
-          mode: box
-          unit_of_measurement: s
+        duration: {}
     recursive:
       name: Include subfolders
       description: If true, includes all subfolders under the main photo folder.
@@ -223,3 +240,27 @@ start_webslideshow:
 stop_webslideshow:
   name: Stop Web Slideshow
   description: Stop the currently active web slideshow and cancel any optional auto-restart watchdog.
+
+resume_slideshow:
+  name: Resume Slideshow
+  description: Resume the paused slideshow on a media player.
+  fields:
+    entity_id:
+      name: Media player
+      description: The media player to resume the slideshow on.
+      required: true
+      selector:
+        entity:
+          domain: media_player
+
+pause_slideshow:
+  name: Pause Slideshow
+  description: Pause slideshow on a media player.
+  fields:
+    entity_id:
+      name: Media player
+      description: The media player to pause the slideshow on.
+      required: true
+      selector:
+        entity:
+          domain: media_player

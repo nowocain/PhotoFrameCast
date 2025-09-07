@@ -4,10 +4,10 @@ import random
 from datetime import datetime, timedelta
 from pathlib import Path
 from urllib.parse import quote
-
 from aiohttp import web
 from homeassistant.core import HomeAssistant
 from homeassistant.components.http import HomeAssistantView
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.network import get_url
 from homeassistant.components.media_player import MediaPlayerEntityFeature
 
@@ -18,35 +18,41 @@ async def notify_user(hass: HomeAssistant, title: str, message: str, notificatio
     from homeassistant.components.persistent_notification import async_create as create_notification
     create_notification(hass, message=message, title=title, notification_id=notification_id)
 
-def collect_photos(folder: Path, recursive: bool, shuffle: bool, sort_folder_by_folder: bool):
+def collect_photos(folder: Path, recursive: bool, shuffle: bool, sort_folder_by_folder: bool, sort_order: str = "alpha"):
     """Collect photo paths efficiently with optional folder-by-folder sorting."""
+
+    def sort_files(files):
+        if shuffle:
+            return files
+        if sort_order == "alpha":
+            return sorted(files, key=lambda x: x.name.lower())
+        elif sort_order == "newest":
+            return sorted(files, key=lambda x: x.stat().st_mtime, reverse=True)
+        elif sort_order == "oldest":
+            return sorted(files, key=lambda x: x.stat().st_mtime)
+        else:
+            return files
+
     photos = []
     if recursive:
         if sort_folder_by_folder:
             base_files = [f for f in folder.iterdir() if f.is_file() and f.suffix.lower() in (".jpg", ".jpeg", ".png")]
-            if not shuffle:
-                base_files.sort(key=lambda x: x.name.lower())
-            photos.extend(f.relative_to(folder) for f in base_files)
+            photos.extend(sort_files(base_files))
             for subfolder in sorted(folder.rglob("*")):
                 if subfolder.is_dir() and subfolder != folder:
                     files = [f for f in subfolder.iterdir() if f.is_file() and f.suffix.lower() in (".jpg", ".jpeg", ".png")]
-                    if not shuffle:
-                        files.sort(key=lambda x: x.name.lower())
-                    photos.extend(f.relative_to(folder) for f in files)
+                    photos.extend(sort_files(files))
         else:
             files = [f for f in folder.rglob("*") if f.is_file() and f.suffix.lower() in (".jpg", ".jpeg", ".png")]
-            if not shuffle:
-                files.sort(key=lambda x: x.name.lower())
-            photos.extend(f.relative_to(folder) for f in files)
+            photos.extend(sort_files(files))
     else:
         files = [f for f in folder.iterdir() if f.is_file() and f.suffix.lower() in (".jpg", ".jpeg", ".png")]
-        if not shuffle:
-            files.sort(key=lambda x: x.name.lower())
-        photos.extend(f.relative_to(folder) for f in files)
+        photos.extend(sort_files(files))
+
     return photos
 
-async def wait_if_busy(hass, entity_id, urls, force, next_photo):
-    """Wait until the media player is not busy playing other media, logging periodically."""
+
+async def wait_if_busy(hass, entity_id, urls, force, next_photo, start_time=None, max_runtime_seconds=None):
     busy_logged = False
     while True:
         state = hass.states.get(entity_id)
@@ -61,15 +67,36 @@ async def wait_if_busy(hass, entity_id, urls, force, next_photo):
             and media_type in ["video", "music"]
             and not (position == 0 and duration == 0)
         )
+
+        if start_time and max_runtime_seconds:
+            elapsed = (datetime.now() - start_time).total_seconds()
+            if elapsed >= max_runtime_seconds:
+                _LOGGER.info(
+                    "PhotoFrameCast: Max runtime reached while waiting for device %s, cleaning up",
+                    entity_id
+                )
+                return False
+
         if busy:
             if not busy_logged:
-                _LOGGER.info("PhotoFrameCast: %s was busy with other media, checking every 20s...", entity_id)
+                _LOGGER.info(
+                    "PhotoFrameCast: %s was busy with other media, checking every 20s...",
+                    entity_id
+                )
                 busy_logged = True
             await asyncio.sleep(20)
         else:
             if busy_logged:
-                _LOGGER.info("PhotoFrameCast: %s is now free, resuming slideshow with %s", entity_id, Path(next_photo).name)
-            break
+                try:
+                    photo_name = Path(next_photo).name
+                except Exception:
+                    photo_name = str(next_photo)
+                _LOGGER.info(
+                    "PhotoFrameCast: %s is now free, resuming slideshow with %s",
+                    entity_id, photo_name
+                )
+            return True
+
 
 async def play_photo(hass, entity_id, url, interval):
     """Play a single photo on the media player."""
@@ -88,14 +115,35 @@ async def play_photo(hass, entity_id, url, interval):
         )
         if interval > 0:
             await asyncio.shield(asyncio.sleep(interval))
+
     except asyncio.CancelledError:
         raise
+
     except Exception as e:
         msg = str(e)
-        _LOGGER.error("PhotoFrameCast: Failed to cast %s on %s: %s", url, entity_id, msg)
-        await notify_user(hass, "PhotoFrameCast Error", f"Failed to cast {url} on {entity_id}: {msg}")
+        _LOGGER.error(
+            "PhotoFrameCast: Failed to cast %s on %s: %s", url, entity_id, msg
+        )
+        await notify_user(
+            hass,
+            "PhotoFrameCast Error",
+            f"Failed to cast {url} on {entity_id}: {msg}",
+        )
+
+        # Mark as incompatible only on known error patterns
         if "No playable items found" in msg or "Invalid media type" in msg:
-            _LOGGER.warning("PhotoFrameCast: Slideshow on %s was aborted: incompatible media player or unsupported format", entity_id)
-            await notify_user(hass, "PhotoFrameCast Warning", f"Incompatible media player for {entity_id}; slideshow aborted")
-            await stop_slideshow(hass, entity_id, turn_off=False)
-            raise RuntimeError("Incompatible media player, slideshow aborted")
+            _LOGGER.warning(
+                "PhotoFrameCast: Slideshow on %s was aborted: incompatible media player or unsupported format",
+                entity_id,
+            )
+            await notify_user(
+                hass,
+                "PhotoFrameCast Warning",
+                f"Incompatible media player for {entity_id}; slideshow aborted",
+            )
+            # Instead of stopping here, raise specific error
+            raise HomeAssistantError(
+                f"Incompatible media player: {entity_id}"
+            ) from e
+
+        raise

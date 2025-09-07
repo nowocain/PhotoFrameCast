@@ -26,6 +26,7 @@ async def async_get_actions(hass, device_id=None):
                 "loop": {"name": "Loop Slideshow", "required": False, "default": True},
                 "force": {"name": "Force Run", "required": False, "default": True},
                 "max_runtime": {"name": "Max Runtime (minutes)", "required": False, "default": 720},
+                "sync_group": {"name": "Sync Group (optional)", "required": False, "default": ""},
             },
         },
         {
@@ -58,6 +59,7 @@ async def async_call_action(hass, config, variables, context):
                 "loop": config.get("loop", True),
                 "force": config.get("force", True),
                 "max_runtime": config.get("max_runtime", 720),
+                "sync_group": config.get("sync_group") or None,
             },
             context=context,
         )

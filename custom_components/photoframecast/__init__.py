@@ -12,7 +12,7 @@ from homeassistant.helpers.storage import Store
 from homeassistant.helpers import config_validation as cv
 from datetime import datetime, timedelta
 
-from .services import start_slideshow_service, stop_slideshow_service, reset_resume_service, photo_of_the_day_service
+from .services import start_slideshow_service, stop_slideshow_service, reset_resume_service, photo_of_the_day_service, pause_slideshow_service, resume_slideshow_service, PAUSE_RESUME_SCHEMA, START_SLIDESHOW_SCHEMA
 from .helpers import notify_user
 from .const import DOMAIN, STORAGE_KEY, STORAGE_VERSION
 from .webslideshow import start_webslideshow_service, stop_webslideshow_service, WebSlideshowView, WebSlideshowCurrentView, WebFileView
@@ -59,6 +59,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType):
 
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN].setdefault("running_slideshows", {})
+    hass.data[DOMAIN].setdefault("sync_groups", {})
 
     # Persistent storage for resume feature
     hass.data[DOMAIN]["store"] = Store(hass, STORAGE_VERSION, STORAGE_KEY)
@@ -70,10 +71,12 @@ async def async_setup(hass: HomeAssistant, config: ConfigType):
     hass.http.register_view(GlobalPhotoView(hass))
 
     # Register Services
-    hass.services.async_register(DOMAIN, "start_slideshow", start_slideshow_service)
+    hass.services.async_register(DOMAIN, "start_slideshow", start_slideshow_service, schema=START_SLIDESHOW_SCHEMA)
     hass.services.async_register(DOMAIN, "stop_slideshow", stop_slideshow_service)
     hass.services.async_register(DOMAIN, "reset_resume", reset_resume_service)
-    hass.services.async_register(DOMAIN, "photo_of_the_day", photo_of_the_day_service)
+    hass.services.async_register(DOMAIN, "photo_of_the_day", photo_of_the_day_service)	
+    hass.services.async_register(DOMAIN, "pause_slideshow", pause_slideshow_service, schema=PAUSE_RESUME_SCHEMA)
+    hass.services.async_register(DOMAIN, "resume_slideshow", resume_slideshow_service, schema=PAUSE_RESUME_SCHEMA)
 
     # Register WebSlideshow services
     hass.services.async_register(DOMAIN, "start_webslideshow", start_webslideshow_service)
